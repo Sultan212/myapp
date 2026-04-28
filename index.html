@@ -1,17 +1,124 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html><html lang="tr">
 <head>
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fruit Ninja Web</title>
+<style>
+body, html {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #111;
+}
+canvas {
+  display: block;
+}
+#score {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  color: white;
+  font-size: 20px;
+  font-family: Arial;
+}
+</style>
 </head>
 <body>
+<div id="score">Skor: 0</div>
+<canvas id="game"></canvas><script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-  <center>
-<img src="Logo.jpg" alt="" width="200" height="45">
-    
-    <img src="https://hizliresim.com/fvm8hkn" alt="">
-<center/>
-</body>
+let fruits = [];
+let score = 0;
+
+// Sesler (CDN)
+const sliceSound = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-fast-sword-whoosh-2792.mp3");
+const spawnSound = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-game-ball-tap-2073.mp3");
+
+class Fruit {
+  constructor() {
+    this.x = Math.random() * canvas.width;
+    this.y = canvas.height + 50;
+    this.radius = 30;
+    this.speed = Math.random() * 5 + 7;
+    this.gravity = 0.2;
+    this.color = `hsl(${Math.random()*360},70%,50%)`;
+  }
+
+  update() {
+    this.y -= this.speed;
+    this.speed -= this.gravity;
+  }
+
+  draw() {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
+    ctx.fillStyle = this.color;
+    ctx.fill();
+  }
+}
+
+function spawnFruit() {
+  fruits.push(new Fruit());
+  spawnSound.play();
+}
+
+setInterval(spawnFruit, 1000);
+
+function animate() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  fruits.forEach((fruit, index) => {
+    fruit.update();
+    fruit.draw();
+
+    if (fruit.y > canvas.height + 100) {
+      fruits.splice(index,1);
+    }
+  });
+
+  requestAnimationFrame(animate);
+}
+animate();
+
+let isDown = false;
+
+canvas.addEventListener("touchstart", () => isDown = true);
+canvas.addEventListener("touchend", () => isDown = false);
+canvas.addEventListener("mousedown", () => isDown = true);
+canvas.addEventListener("mouseup", () => isDown = false);
+
+canvas.addEventListener("mousemove", slice);
+canvas.addEventListener("touchmove", (e) => {
+  slice(e.touches[0]);
+});
+
+function slice(e) {
+  if (!isDown) return;
+
+  const x = e.clientX;
+  const y = e.clientY;
+
+  fruits.forEach((fruit, index) => {
+    const dx = fruit.x - x;
+    const dy = fruit.y - y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+
+    if (dist < fruit.radius) {
+      fruits.splice(index,1);
+      score++;
+      document.getElementById("score").innerText = "Skor: " + score;
+      sliceSound.play();
+    }
+  });
+}
+
+window.addEventListener("resize", () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+</script></body>
 </html>
