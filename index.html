@@ -1,12 +1,9 @@
-Mobil uyumluluğu kesinleştirmek ve seslerin hatasız çalışmasını sağlamak için güncelleme yaptım. Artık meyveler çok daha yükseğe fırlıyor, görseller ve sesler için güvenilir, lisansı serbest harici kaynaklar kullanılıyor. Sesler ilk dokunuşta aktif hale gelir.
-
-```html
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>🍉 Meyve Ninja | Yüksek Uçuş + Sesli</title>
+    <title>🍉 Meyve Ninja | Mobil Uyumlu Kesme Oyunu</title>
     <style>
         * {
             margin: 0;
@@ -17,12 +14,12 @@ Mobil uyumluluğu kesinleştirmek ve seslerin hatasız çalışmasını sağlama
         }
 
         body {
-            background: linear-gradient(145deg, #0a2f1f 0%, #071e12 100%);
+            background: linear-gradient(145deg, #0a3b1f 0%, #051a0e 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: 'Segoe UI', 'Poppins', 'Quicksand', system-ui, -apple-system, 'Roboto', sans-serif;
+            font-family: 'Segoe UI', 'Poppins', system-ui, 'Roboto', sans-serif;
             touch-action: none;
             overflow: hidden;
             position: fixed;
@@ -30,153 +27,132 @@ Mobil uyumluluğu kesinleştirmek ve seslerin hatasız çalışmasını sağlama
             height: 100%;
         }
 
+        /* Ana konteynır - tam ekran, esnek */
         .game-container {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
             width: 100%;
             height: 100%;
-            padding: 12px;
+            padding: 12px 12px 8px 12px;
+            gap: 12px;
         }
 
+        /* Skor ve can paneli - mobilde rahat dokunma */
         .stats {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            width: 100%;
-            max-width: 900px;
-            background: rgba(0, 0, 0, 0.55);
-            backdrop-filter: blur(12px);
-            border-radius: 100px;
-            padding: 10px 28px;
-            margin-bottom: 18px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 215, 120, 0.4);
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(16px);
+            border-radius: 60px;
+            padding: 8px 16px;
+            border: 1px solid rgba(255, 200, 80, 0.5);
+            box-shadow: 0 5px 12px rgba(0,0,0,0.3);
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
         }
 
         .score-box, .lives-box {
             display: flex;
             align-items: center;
-            gap: 12px;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 5px 20px;
-            border-radius: 50px;
-            backdrop-filter: blur(4px);
+            gap: 8px;
+            background: rgba(0,0,0,0.4);
+            padding: 4px 16px;
+            border-radius: 40px;
         }
 
         .score-box span:first-child, .lives-box span:first-child {
             font-weight: bold;
-            font-size: 1.2rem;
-            color: #ffde9c;
-            text-shadow: 0 2px 4px black;
-            letter-spacing: 1px;
+            font-size: 0.9rem;
+            color: #ffecb3;
+            letter-spacing: 0.5px;
         }
 
         .score-value {
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: 800;
-            background: linear-gradient(135deg, #ffd966, #ffb347);
+            background: linear-gradient(135deg, #ffd966, #ff9f2e);
             background-clip: text;
             -webkit-background-clip: text;
             color: transparent;
-            font-weight: 900;
         }
 
         .lives-icons {
             display: flex;
-            gap: 8px;
-            font-size: 2rem;
+            gap: 6px;
+            font-size: 1.6rem;
         }
 
         .restart-btn {
-            background: #ff914d;
+            background: #ff7e2e;
             border: none;
-            font-size: 1.3rem;
+            font-size: 1rem;
             font-weight: bold;
-            padding: 6px 24px;
-            border-radius: 60px;
-            color: #2d1b00;
+            padding: 6px 20px;
+            border-radius: 40px;
+            color: #2a1800;
             cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 0 #a33f00;
+            transition: 0.1s ease;
+            box-shadow: 0 3px 0 #9b3f00;
             font-family: inherit;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .restart-btn:active {
             transform: translateY(2px);
-            box-shadow: 0 1px 0 #a33f00;
+            box-shadow: 0 1px 0 #9b3f00;
+        }
+
+        /* Canvas - mobilde tam genişlik, orantılı, yuvarlak */
+        .canvas-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 0; /* flex taşmasını engeller */
         }
 
         canvas {
-            display: block;
             width: 100%;
             height: auto;
-            max-width: 1100px;
-            background: radial-gradient(circle at 30% 20%, #2b7a3b, #0f3b22);
-            border-radius: 48px;
-            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.5), inset 0 1px 4px rgba(255, 255, 255, 0.2);
+            max-width: 100%;
+            background: radial-gradient(circle at 30% 20%, #2b823a, #0f4622);
+            border-radius: 36px;
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.5), inset 0 1px 3px rgba(255,255,200,0.3);
             cursor: crosshair;
             touch-action: none;
-            border: 3px solid rgba(255, 215, 0, 0.6);
-        }
-
-        .game-over-msg {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(16px);
-            padding: 28px 40px;
-            border-radius: 70px;
-            text-align: center;
-            color: gold;
-            font-weight: bold;
-            z-index: 20;
-            pointer-events: none;
-            transition: all 0.2s;
-            border: 2px solid #ffb347;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
-            font-size: 1.6rem;
-            white-space: nowrap;
+            border: 2px solid #ffc857;
+            display: block;
+            aspect-ratio: 1000 / 600; /* sabit oran */
         }
 
         .instruction {
-            margin-top: 15px;
+            text-align: center;
             background: rgba(0,0,0,0.5);
-            padding: 6px 18px;
-            border-radius: 30px;
-            font-size: 0.85rem;
-            color: #fff1b5;
+            backdrop-filter: blur(8px);
+            padding: 6px 12px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            color: #fff0b5;
             font-weight: 500;
-            backdrop-filter: blur(4px);
         }
 
-        @media (max-width: 700px) {
-            .stats {
-                padding: 8px 18px;
-            }
+        /* mobil çok küçük ekranlarda fontlar küçülsün */
+        @media (max-width: 550px) {
             .score-value {
-                font-size: 1.6rem;
+                font-size: 1.4rem;
             }
             .lives-icons {
-                font-size: 1.5rem;
-                gap: 5px;
+                font-size: 1.3rem;
             }
             .restart-btn {
-                padding: 4px 18px;
-                font-size: 1rem;
+                padding: 4px 14px;
+                font-size: 0.85rem;
             }
-            .game-over-msg {
-                font-size: 1.2rem;
-                padding: 18px 32px;
-                white-space: nowrap;
+            .stats {
+                padding: 6px 12px;
             }
         }
     </style>
@@ -192,47 +168,45 @@ Mobil uyumluluğu kesinleştirmek ve seslerin hatasız çalışmasını sağlama
             <span>❤️ CAN</span>
             <div class="lives-icons" id="livesIcons">❤️❤️❤️</div>
         </div>
-        <button class="restart-btn" id="restartButton">⚔️ YENIDEN BAŞLA</button>
+        <button class="restart-btn" id="restartButton">⚔️ YENİDEN</button>
     </div>
 
-    <canvas id="gameCanvas" width="1000" height="600" style="width:100%; height:auto; max-width:1000px; aspect-ratio:1000/600"></canvas>
-    <div class="instruction">💥 Hızlı çizgi çizerek meyveleri kes! 💥 Bomba'ya dokunma! (Sesler ilk dokunuşta aktif olur)</div>
+    <div class="canvas-wrapper">
+        <canvas id="gameCanvas" width="1000" height="600"></canvas>
+    </div>
+    <div class="instruction">
+        ✨ Parmakla hızlıca çizgi çiz → meyveleri kes! 💣 Bombadan uzak dur! (Sesler için dokun)
+    </div>
 </div>
 <div id="gameOverMsg" class="game-over-msg" style="display: none;">🍂 OYUN BİTTİ! 🍂</div>
 
 <script>
     (function(){
-        // ----- Canvas ve Oyun Parametreleri -----
+        // ---------- CANVAS ----------
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        // Canvas sabit çözünürlük 1000x600 ama CSS ölçeklendirecek
         canvas.width = 1000;
         canvas.height = 600;
         
+        // Oyun değişkenleri
         let fruits = [];
         let score = 0;
         let lives = 3;
         let gameActive = true;
         let animationId = null;
         let lastUpdateTime = performance.now() / 1000;
-        
-        // Spawn yönetimi
         let lastSpawnTime = 0;
         let nextSpawnDelay = 0.6;
         
-        // Kesme çizgisi
+        // Çizgi (kesme) verileri
         let isPointerDown = false;
         let slicePoints = [];
         
-        // ----- GÖRSELLER (Dış Kaynak, yüksek çözünürlük) -----
+        // ---------- GÖRSELLER (dış kaynak, güvenilir) ----------
         const fruitImages = {
-            apple: null,
-            banana: null,
-            orange: null,
-            watermelon: null,
-            bomb: null
+            apple: null, banana: null, orange: null, watermelon: null, bomb: null
         };
-        
-        // Güvenilir, hızlı icon CDN'leri (Flaticon)
         const IMG_URLS = {
             apple: 'https://cdn-icons-png.flaticon.com/512/1137/1137809.png',
             banana: 'https://cdn-icons-png.flaticon.com/512/1620/1620818.png',
@@ -241,74 +215,66 @@ Mobil uyumluluğu kesinleştirmek ve seslerin hatasız çalışmasını sağlama
             bomb: 'https://cdn-icons-png.flaticon.com/512/1490/1490853.png'
         };
         
-        // Meyve türleri (radius büyük, kolay kesim)
         const fruitTypes = [
-            { type: 'apple',    points: 10, radius: 34, imgKey: 'apple' },
-            { type: 'banana',   points: 15, radius: 32, imgKey: 'banana' },
-            { type: 'orange',   points: 12, radius: 34, imgKey: 'orange' },
+            { type: 'apple', points: 10, radius: 34, imgKey: 'apple' },
+            { type: 'banana', points: 15, radius: 32, imgKey: 'banana' },
+            { type: 'orange', points: 12, radius: 34, imgKey: 'orange' },
             { type: 'watermelon', points: 20, radius: 38, imgKey: 'watermelon' }
         ];
         
-        // ----- SESLER (Pixabay lisanslı, kesin çalışan harici kaynaklar) -----
+        // ---------- SESLER (Pixabay CDN, çalışır) ----------
         let sliceAudio = null;
         let bombAudio = null;
         let audioUnlocked = false;
         
-        const SOUND_SLICE_URL = 'https://cdn.pixabay.com/download/audio/2022/03/10/audio_c8c8c0c2c0.mp3?filename=sword-slash-8bit-183647.mp3';
-        const SOUND_BOMB_URL = 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0d0d0d0d0.mp3?filename=explosion-03-95609.mp3';
+        const SLICE_URL = 'https://cdn.pixabay.com/download/audio/2022/03/10/audio_c8c8c0c2c0.mp3?filename=sword-slash-8bit-183647.mp3';
+        const BOMB_URL = 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0d0d0d0d0.mp3?filename=explosion-03-95609.mp3';
         
         function initSounds() {
             try {
-                sliceAudio = new Audio(SOUND_SLICE_URL);
-                bombAudio = new Audio(SOUND_BOMB_URL);
+                sliceAudio = new Audio(SLICE_URL);
+                bombAudio = new Audio(BOMB_URL);
                 sliceAudio.volume = 0.65;
                 bombAudio.volume = 0.55;
                 sliceAudio.load();
                 bombAudio.load();
-            } catch(e) { console.warn("Ses başlatma hatası", e); }
+            } catch(e) { console.warn("ses yüklenemedi"); }
         }
         
-        // Kullanıcı ilk etkileşiminde ses motorunu aktifleştir
         function unlockAudio() {
             if (audioUnlocked) return;
             if (sliceAudio) {
-                sliceAudio.play().then(() => {
-                    sliceAudio.pause();
-                    sliceAudio.currentTime = 0;
-                }).catch(e => console.log("ses kilidi açılamadı", e));
+                sliceAudio.play().then(() => { sliceAudio.pause(); sliceAudio.currentTime = 0; }).catch(e=>{});
             }
             if (bombAudio) {
-                bombAudio.play().then(() => {
-                    bombAudio.pause();
-                    bombAudio.currentTime = 0;
-                }).catch(e => console.log("ses kilidi açılamadı", e));
+                bombAudio.play().then(() => { bombAudio.pause(); bombAudio.currentTime = 0; }).catch(e=>{});
             }
             audioUnlocked = true;
         }
         
-        function playSliceEffect() {
+        function playSlice() {
             if (!gameActive) return;
             if (!audioUnlocked) unlockAudio();
             if (sliceAudio) {
                 const clone = sliceAudio.cloneNode();
                 clone.volume = 0.7;
-                clone.play().catch(e => console.log("slice ses oynatılamadı"));
+                clone.play().catch(e=>{});
             }
         }
         
-        function playBombEffect() {
+        function playBomb() {
             if (!audioUnlocked) unlockAudio();
             if (bombAudio) {
                 const clone = bombAudio.cloneNode();
                 clone.volume = 0.6;
-                clone.play().catch(e => console.log("bomb ses oynatılamadı"));
+                clone.play().catch(e=>{});
             }
         }
         
-        // ----- Görsel yükleme -----
+        // ---------- RESİM YÜKLEME ----------
         function loadImages() {
             const keys = Object.keys(fruitImages);
-            let loadedCount = 0;
+            let loaded = 0;
             return new Promise((resolve) => {
                 for (let key of keys) {
                     const img = new Image();
@@ -316,43 +282,40 @@ Mobil uyumluluğu kesinleştirmek ve seslerin hatasız çalışmasını sağlama
                     img.src = IMG_URLS[key];
                     img.onload = () => {
                         fruitImages[key] = img;
-                        loadedCount++;
-                        if (loadedCount === keys.length) resolve();
+                        loaded++;
+                        if(loaded === keys.length) resolve();
                     };
                     img.onerror = () => {
-                        console.warn(`${key} görsel yüklenemedi, fallback aktif`);
                         fruitImages[key] = null;
-                        loadedCount++;
-                        if (loadedCount === keys.length) resolve();
+                        loaded++;
+                        if(loaded === keys.length) resolve();
                     };
                 }
             });
         }
         
-        // ----- UI Güncelleme -----
+        // ---------- UI ----------
         function updateUI() {
             document.getElementById('scoreDisplay').innerText = score;
             const livesDiv = document.getElementById('livesIcons');
             let heartStr = '';
-            for(let i = 0; i < lives; i++) heartStr += '❤️ ';
-            for(let i = lives; i < 3; i++) heartStr += '🖤 ';
+            for(let i=0; i<lives; i++) heartStr += '❤️ ';
+            for(let i=lives; i<3; i++) heartStr += '🖤 ';
             livesDiv.innerHTML = heartStr.trim();
         }
         
         function endGame() {
-            if (!gameActive) return;
+            if(!gameActive) return;
             gameActive = false;
-            const msgDiv = document.getElementById('gameOverMsg');
-            msgDiv.style.display = 'block';
-            setTimeout(() => {
-                if(!gameActive) msgDiv.style.display = 'none';
-            }, 1800);
-            if (animationId) cancelAnimationFrame(animationId);
+            const msg = document.getElementById('gameOverMsg');
+            msg.style.display = 'block';
+            setTimeout(() => { if(!gameActive) msg.style.display = 'none'; }, 1700);
+            if(animationId) cancelAnimationFrame(animationId);
             animationId = null;
         }
         
         function restartGame() {
-            if (animationId) cancelAnimationFrame(animationId);
+            if(animationId) cancelAnimationFrame(animationId);
             fruits = [];
             score = 0;
             lives = 3;
@@ -367,100 +330,88 @@ Mobil uyumluluğu kesinleştirmek ve seslerin hatasız çalışmasını sağlama
             animationId = requestAnimationFrame(gameLoop);
         }
         
-        // ----- MEYVE FIRLATMA (yüksek uçuş) -----
-        function spawnItem(nowSec) {
-            if (!gameActive) return;
-            const isBomb = Math.random() < 0.22; // %22 bomba ihtimali
-            if (!isBomb) {
-                const randType = fruitTypes[Math.floor(Math.random() * fruitTypes.length)];
-                const radius = randType.radius;
+        // ---------- MEYVE FIRLATMA (yüksek uçuş) ----------
+        function spawnItem() {
+            if(!gameActive) return;
+            const isBomb = Math.random() < 0.22;
+            if(!isBomb){
+                const rand = fruitTypes[Math.floor(Math.random() * fruitTypes.length)];
                 const x = 70 + Math.random() * (canvas.width - 140);
                 const y = canvas.height - 12;
-                // Yatay sürat
-                const vx = (Math.random() - 0.5) * 4.5;
-                // YUKARI FIRLATMA: -13 ile -19 arası (çok yüksek)
-                const vy = -13 - Math.random() * 7;
+                const vx = (Math.random() - 0.5) * 4.2;
+                const vy = -13 - Math.random() * 7;   // YÜKSEK FIRLATMA
                 fruits.push({
                     id: Math.random(),
                     type: 'fruit',
-                    fruitType: randType.type,
-                    points: randType.points,
-                    radius: radius,
-                    x: x, y: y,
-                    vx: vx, vy: vy,
-                    gravity: 0.30,   // daha hafif çekim -> havada kalma
-                    imgKey: randType.imgKey
+                    fruitType: rand.type,
+                    points: rand.points,
+                    radius: rand.radius,
+                    x, y, vx, vy,
+                    gravity: 0.30,
+                    imgKey: rand.imgKey
                 });
             } else {
-                // Bomba (daha az yükseğe)
                 const x = 70 + Math.random() * (canvas.width - 140);
                 const y = canvas.height - 10;
-                const vx = (Math.random() - 0.5) * 4.0;
-                const vy = -11 - Math.random() * 5;
+                const vx = (Math.random() - 0.5) * 3.8;
+                const vy = -11 - Math.random() * 5.5;
                 fruits.push({
                     id: Math.random(),
                     type: 'bomb',
                     radius: 32,
-                    x: x, y: y,
-                    vx: vx, vy: vy,
+                    x, y, vx, vy,
                     gravity: 0.38,
                     imgKey: 'bomb'
                 });
             }
         }
         
-        // Fizik güncellemesi (zaman tabanlı)
         function updateFruits(deltaSec) {
             const dt = Math.min(deltaSec, 0.033);
             const factor = dt * 60;
-            for (let i = 0; i < fruits.length; i++) {
+            for(let i=0; i<fruits.length; i++){
                 const f = fruits[i];
                 f.x += f.vx * factor;
                 f.y += f.vy * factor;
                 f.vy += f.gravity * factor;
-                // Ekran dışı kontrolü (çok dışarı attıysa sil)
-                if (f.y + f.radius < -120 || f.y - f.radius > canvas.height + 150 ||
-                    f.x + f.radius < -120 || f.x - f.radius > canvas.width + 180) {
+                if(f.y + f.radius < -120 || f.y - f.radius > canvas.height+150 ||
+                   f.x + f.radius < -120 || f.x - f.radius > canvas.width+180){
                     fruits.splice(i,1);
                     i--;
                 }
             }
         }
         
-        // ----- Çizgi - Daire kesişim algoritması -----
-        function lineIntersectsCircle(x1, y1, x2, y2, cx, cy, radius) {
-            const dx = x2 - x1;
-            const dy = y2 - y1;
-            const fx = cx - x1;
-            const fy = cy - y1;
-            const lenSq = dx*dx + dy*dy;
-            if (lenSq === 0) return Math.hypot(cx - x1, cy - y1) <= radius;
-            let t = ((fx * dx) + (fy * dy)) / lenSq;
+        // ---------- Çizgi kesişim ----------
+        function lineIntersectsCircle(x1,y1,x2,y2, cx,cy, r){
+            const dx = x2-x1, dy = y2-y1;
+            const fx = cx-x1, fy = cy-y1;
+            const lenSq = dx*dx+dy*dy;
+            if(lenSq === 0) return Math.hypot(cx-x1, cy-y1) <= r;
+            let t = ((fx*dx)+(fy*dy))/lenSq;
             t = Math.max(0, Math.min(1, t));
-            const closestX = x1 + t * dx;
-            const closestY = y1 + t * dy;
-            return Math.hypot(cx - closestX, cy - closestY) <= radius;
+            const closestX = x1 + t*dx;
+            const closestY = y1 + t*dy;
+            return Math.hypot(cx-closestX, cy-closestY) <= r;
         }
         
-        // Kesme segmenti kontrolü
-        function trySliceSegment(p1, p2) {
-            if (!gameActive) return false;
-            for (let i = 0; i < fruits.length; i++) {
+        function trySliceSegment(p1, p2){
+            if(!gameActive) return false;
+            for(let i=0; i<fruits.length; i++){
                 const item = fruits[i];
-                if (lineIntersectsCircle(p1.x, p1.y, p2.x, p2.y, item.x, item.y, item.radius)) {
-                    if (item.type === 'fruit') {
+                if(lineIntersectsCircle(p1.x, p1.y, p2.x, p2.y, item.x, item.y, item.radius)){
+                    if(item.type === 'fruit'){
                         score += item.points;
                         updateUI();
-                        playSliceEffect();
+                        playSlice();
                         fruits.splice(i,1);
                         return true;
-                    } 
-                    else if (item.type === 'bomb') {
-                        playBombEffect();
+                    } else if(item.type === 'bomb'){
+                        playBomb();
                         lives--;
                         updateUI();
                         fruits.splice(i,1);
-                        if (lives <= 0) {
+                        if(lives <= 0){
                             lives = 0;
                             updateUI();
                             endGame();
@@ -472,28 +423,26 @@ Mobil uyumluluğu kesinleştirmek ve seslerin hatasız çalışmasını sağlama
             return false;
         }
         
-        // Çizgi noktası ekleme / kesme tetikleme
-        function addSlicePoint(x, y) {
-            if (!gameActive) return;
-            const newPoint = { x, y };
-            if (slicePoints.length > 0) {
-                const last = slicePoints[slicePoints.length - 1];
-                trySliceSegment(last, newPoint);
+        function addSlicePoint(x,y){
+            if(!gameActive) return;
+            const newP = {x,y};
+            if(slicePoints.length > 0){
+                trySliceSegment(slicePoints[slicePoints.length-1], newP);
             }
-            slicePoints.push(newPoint);
-            while (slicePoints.length > 24) slicePoints.shift();
+            slicePoints.push(newP);
+            while(slicePoints.length > 24) slicePoints.shift();
         }
         
-        function clearSlice() { slicePoints = []; }
+        function clearSlice(){ slicePoints = []; }
         
-        // ----- KOORDİNAT DÖNÜŞÜMÜ (Mobil + Mouse) -----
-        function getCanvasCoords(e) {
+        // ---------- KOORDİNAT (Canvas içi, mobil uyumlu) ----------
+        function getCanvasCoords(e){
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
             let clientX, clientY;
-            if (e.touches) {
-                if (e.touches.length === 0) return null;
+            if(e.touches){
+                if(e.touches.length === 0) return null;
                 clientX = e.touches[0].clientX;
                 clientY = e.touches[0].clientY;
             } else {
@@ -507,155 +456,142 @@ Mobil uyumluluğu kesinleştirmek ve seslerin hatasız çalışmasını sağlama
             return { x: canvasX, y: canvasY };
         }
         
-        // ----- OLAY YÖNETİCİLERİ (dokunmatik ve fare) -----
-        function onPointerStart(e) {
+        // ---------- OLAY YÖNETİCİLERİ (Mobil + Mouse) ----------
+        function onPointerStart(e){
             e.preventDefault();
-            unlockAudio(); // her dokunuşta ses kontrolü
-            if (!gameActive) return;
+            unlockAudio();
+            if(!gameActive) return;
             isPointerDown = true;
             const coords = getCanvasCoords(e);
-            if (coords) {
+            if(coords){
                 slicePoints = [];
                 addSlicePoint(coords.x, coords.y);
             }
         }
         
-        function onPointerMove(e) {
+        function onPointerMove(e){
             e.preventDefault();
-            if (!isPointerDown || !gameActive) return;
+            if(!isPointerDown || !gameActive) return;
             const coords = getCanvasCoords(e);
-            if (coords) addSlicePoint(coords.x, coords.y);
+            if(coords) addSlicePoint(coords.x, coords.y);
         }
         
-        function onPointerEnd(e) {
+        function onPointerEnd(e){
             e.preventDefault();
             isPointerDown = false;
             clearSlice();
         }
         
         // Spawn zamanlayıcı
-        function handleSpawning(nowSec) {
-            if (!gameActive) return;
-            if (nowSec - lastSpawnTime >= nextSpawnDelay) {
-                spawnItem(nowSec);
+        function handleSpawning(nowSec){
+            if(!gameActive) return;
+            if(nowSec - lastSpawnTime >= nextSpawnDelay){
+                spawnItem();
                 lastSpawnTime = nowSec;
                 nextSpawnDelay = 0.55 + Math.random() * 0.7;
             }
         }
         
-        // ----- ÇİZİM FONKSİYONLARI (görseller + çizgi) -----
-        function drawFruits() {
-            for (let item of fruits) {
+        // ---------- ÇİZİM FONKSİYONLARI ----------
+        function drawFruits(){
+            for(let item of fruits){
                 const img = fruitImages[item.imgKey];
                 const r = item.radius;
-                if (img && img.complete && img.naturalWidth > 0) {
+                if(img && img.complete && img.naturalWidth > 0){
                     ctx.save();
-                    ctx.shadowBlur = 9;
-                    ctx.shadowColor = "rgba(0,0,0,0.4)";
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = "rgba(0,0,0,0.3)";
                     ctx.drawImage(img, item.x - r, item.y - r, r*2, r*2);
                     ctx.restore();
                 } else {
-                    // Fallback renkli + emoji
+                    // fallback
                     ctx.beginPath();
                     ctx.arc(item.x, item.y, r-2, 0, Math.PI*2);
-                    if (item.type === 'fruit') {
-                        ctx.fillStyle = '#ffa047';
+                    if(item.type === 'fruit'){
+                        ctx.fillStyle = '#ffaa55';
                         ctx.fill();
-                        ctx.fillStyle = '#6b2e00';
-                        ctx.font = `${r+6}px "Segoe UI Emoji"`;
+                        ctx.fillStyle = '#863a00';
+                        ctx.font = `${r+4}px "Segoe UI Emoji"`;
                         let emoji = '🍎';
-                        if (item.fruitType === 'banana') emoji = '🍌';
-                        else if (item.fruitType === 'orange') emoji = '🍊';
-                        else if (item.fruitType === 'watermelon') emoji = '🍉';
+                        if(item.fruitType === 'banana') emoji = '🍌';
+                        else if(item.fruitType === 'orange') emoji = '🍊';
+                        else if(item.fruitType === 'watermelon') emoji = '🍉';
                         ctx.fillText(emoji, item.x-18, item.y+14);
                     } else {
-                        ctx.fillStyle = '#2d2d2d';
+                        ctx.fillStyle = '#333';
                         ctx.fill();
-                        ctx.fillStyle = '#ff4444';
-                        ctx.font = `${r+6}px "Segoe UI Emoji"`;
+                        ctx.fillStyle = '#ff4d4d';
+                        ctx.font = `${r+4}px "Segoe UI Emoji"`;
                         ctx.fillText('💣', item.x-18, item.y+14);
                     }
                 }
-                // Parlak kontur
                 ctx.beginPath();
                 ctx.arc(item.x, item.y, r-1, 0, Math.PI*2);
-                ctx.strokeStyle = 'rgba(255, 220, 80, 0.9)';
+                ctx.strokeStyle = '#ffda88';
                 ctx.lineWidth = 2;
                 ctx.stroke();
             }
         }
         
-        function drawSliceLine() {
-            if (slicePoints.length < 2) return;
+        function drawSliceLine(){
+            if(slicePoints.length < 2) return;
             ctx.lineWidth = 7;
             ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.shadowBlur = 6;
-            for (let i = 0; i < slicePoints.length - 1; i++) {
+            ctx.shadowBlur = 5;
+            for(let i=0; i<slicePoints.length-1; i++){
                 const p1 = slicePoints[i];
                 const p2 = slicePoints[i+1];
                 const grad = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
-                grad.addColorStop(0, '#ffdd55');
-                grad.addColorStop(1, '#ff7700');
+                grad.addColorStop(0, '#ffdd66');
+                grad.addColorStop(1, '#ff6a00');
                 ctx.strokeStyle = grad;
                 ctx.beginPath();
                 ctx.moveTo(p1.x, p1.y);
                 ctx.lineTo(p2.x, p2.y);
                 ctx.stroke();
             }
-            if (slicePoints.length > 0) {
+            if(slicePoints.length){
                 const last = slicePoints[slicePoints.length-1];
                 ctx.beginPath();
                 ctx.arc(last.x, last.y, 10, 0, Math.PI*2);
-                ctx.fillStyle = 'rgba(255, 200, 60, 0.85)';
+                ctx.fillStyle = 'rgba(255, 200, 70, 0.85)';
                 ctx.fill();
             }
         }
         
-        function drawBackgroundDetails() {
-            // çimen dokusu ve parlak noktalar
-            for(let i=0;i<60;i++) {
+        function drawBackground(){
+            // süslemeler
+            for(let i=0;i<40;i++){
                 ctx.beginPath();
-                ctx.arc( (i*53)%canvas.width, canvas.height-18 + Math.sin(i)*4, 3, 0, Math.PI*2);
-                ctx.fillStyle = '#527a3b';
-                ctx.fill();
-            }
-            // ninja rüzgar efekti
-            ctx.fillStyle = 'rgba(255,235,140,0.08)';
-            for(let s=0;s<12;s++) {
-                ctx.beginPath();
-                ctx.moveTo(s*90, 0);
-                ctx.lineTo(s*90+40, canvas.height);
-                ctx.lineTo(s*90-20, canvas.height);
+                ctx.arc((i*73)%canvas.width, canvas.height-15, 3, 0, Math.PI*2);
+                ctx.fillStyle = '#6f9e4b';
                 ctx.fill();
             }
         }
         
-        function render() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawBackgroundDetails();
+        function render(){
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            drawBackground();
             drawFruits();
             drawSliceLine();
-            if (!gameActive) {
-                ctx.font = 'bold 46px "Segoe UI", "Poppins"';
-                ctx.shadowBlur = 0;
+            if(!gameActive){
+                ctx.font = 'bold 42px "Segoe UI", system-ui';
                 ctx.fillStyle = '#ffd966';
-                ctx.shadowColor = 'black';
-                ctx.fillText('💀 GAME OVER 💀', canvas.width/2-175, canvas.height/2-40);
+                ctx.shadowBlur = 0;
+                ctx.fillText('💀 GAME OVER 💀', canvas.width/2-170, canvas.height/2-40);
             }
         }
         
-        // ----- ANA OYUN DÖNGÜSÜ (zaman yönetimli) -----
-        let lastFrameSec = performance.now() / 1000;
-        function gameLoop(nowMs) {
-            if (!gameActive && animationId) {
+        // ---------- ANA DÖNGÜ ----------
+        function gameLoop(nowMs){
+            if(!gameActive && animationId){
                 render();
                 animationId = requestAnimationFrame(gameLoop);
                 return;
             }
             const nowSec = nowMs / 1000;
             let delta = Math.min(0.033, nowSec - lastUpdateTime);
-            if (delta > 0.008) {
+            if(delta > 0.008){
                 updateFruits(delta);
                 lastUpdateTime = nowSec;
             }
@@ -664,12 +600,11 @@ Mobil uyumluluğu kesinleştirmek ve seslerin hatasız çalışmasını sağlama
             animationId = requestAnimationFrame(gameLoop);
         }
         
-        // ----- BAŞLATICI -----
-        async function init() {
+        // ---------- BAŞLAT ----------
+        async function init(){
             initSounds();
             await loadImages();
             restartGame();
-            // Event dinleyicileri (mobil ve mouse için)
             canvas.addEventListener('mousedown', onPointerStart);
             window.addEventListener('mousemove', onPointerMove);
             window.addEventListener('mouseup', onPointerEnd);
@@ -678,10 +613,10 @@ Mobil uyumluluğu kesinleştirmek ve seslerin hatasız çalışmasını sağlama
             canvas.addEventListener('touchend', onPointerEnd);
             canvas.addEventListener('touchcancel', onPointerEnd);
             document.getElementById('restartButton').addEventListener('click', () => {
-                if (animationId) cancelAnimationFrame(animationId);
+                if(animationId) cancelAnimationFrame(animationId);
                 restartGame();
             });
-            // Sesleri unlock etmek için canvas'a ilk dokunuşta ekstra (kullanıcıya bağlı)
+            // İlk dokunmada sesleri aktifleştir
             canvas.addEventListener('touchstart', () => unlockAudio(), { once: true });
             canvas.addEventListener('mousedown', () => unlockAudio(), { once: true });
         }
@@ -691,4 +626,3 @@ Mobil uyumluluğu kesinleştirmek ve seslerin hatasız çalışmasını sağlama
 </script>
 </body>
 </html>
-```
