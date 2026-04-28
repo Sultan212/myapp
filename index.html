@@ -2,123 +2,149 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fruit Ninja Web</title>
+<title>Fruit Ninja Pro</title>
 <style>
-body, html {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  background: #111;
-}
-canvas {
-  display: block;
-}
-#score {
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  color: white;
-  font-size: 20px;
-  font-family: Arial;
-}
+body,html{margin:0;padding:0;overflow:hidden;background:#000;font-family:Arial}
+canvas{display:block}
+#ui{position:fixed;top:10px;left:10px;color:#fff;font-size:18px}
 </style>
 </head>
 <body>
-<div id="score">Skor: 0</div>
-<canvas id="game"></canvas><script>
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+<div id="ui">Skor: 0 | Can: 3</div>
+<canvas id="c"></canvas><script>
+const canvas=document.getElementById("c");
+const ctx=canvas.getContext("2d");
+canvas.width=innerWidth;
+canvas.height=innerHeight;
 
-let fruits = [];
-let score = 0;
+let fruits=[],score=0,lives=3;
 
-// Sesler (CDN)
-const sliceSound = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-fast-sword-whoosh-2792.mp3");
-const spawnSound = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-game-ball-tap-2073.mp3");
+// Gerçek meyve görselleri (CDN)
+const images=[
+ "https://i.imgur.com/6X4Qp7P.png", // karpuz
+ "https://i.imgur.com/1Xq9BiB.png", // elma
+ "https://i.imgur.com/Z6X6K8F.png", // muz
+ "https://i.imgur.com/4dX1K9E.png"  // portakal
+];
 
-class Fruit {
-  constructor() {
-    this.x = Math.random() * canvas.width;
-    this.y = canvas.height + 50;
-    this.radius = 30;
-    this.speed = Math.random() * 5 + 7;
-    this.gravity = 0.2;
-    this.color = `hsl(${Math.random()*360},70%,50%)`;
-  }
+// Sesler (daha gerçekçi)
+const sliceSound=new Audio("https://assets.mixkit.co/sfx/preview/mixkit-sword-slash-2791.mp3");
+const bombSound=new Audio("https://assets.mixkit.co/sfx/preview/mixkit-arcade-retro-bomb-explosion-2759.mp3");
 
-  update() {
-    this.y -= this.speed;
-    this.speed -= this.gravity;
-  }
-
-  draw() {
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
-    ctx.fillStyle = this.color;
-    ctx.fill();
-  }
+class Fruit{
+ constructor(){
+  this.img=new Image();
+  this.img.src=images[Math.floor(Math.random()*images.length)];
+  this.x=Math.random()*canvas.width;
+  this.y=canvas.height+100;
+  this.size=80;
+  this.speedY=Math.random()*10+10;
+  this.speedX=(Math.random()-0.5)*6;
+  this.gravity=0.4;
+ }
+ update(){
+  this.y-=this.speedY;
+  this.x+=this.speedX;
+  this.speedY-=this.gravity;
+ }
+ draw(){
+  ctx.drawImage(this.img,this.x,this.y,this.size,this.size);
+ }
 }
 
-function spawnFruit() {
-  fruits.push(new Fruit());
-  spawnSound.play();
+class Bomb{
+ constructor(){
+  this.img=new Image();
+  this.img.src="https://i.imgur.com/8Qf7Z9W.png";
+  this.x=Math.random()*canvas.width;
+  this.y=canvas.height+100;
+  this.size=80;
+  this.speedY=Math.random()*10+10;
+  this.speedX=(Math.random()-0.5)*6;
+  this.gravity=0.4;
+ }
+ update(){
+  this.y-=this.speedY;
+  this.x+=this.speedX;
+  this.speedY-=this.gravity;
+ }
+ draw(){
+  ctx.drawImage(this.img,this.x,this.y,this.size,this.size);
+ }
 }
 
-setInterval(spawnFruit, 1000);
+let objects=[];
 
-function animate() {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+function spawn(){
+ if(Math.random()<0.8){
+  objects.push(new Fruit());
+ }else{
+  objects.push(new Bomb());
+ }
+}
+setInterval(spawn,800);
 
-  fruits.forEach((fruit, index) => {
-    fruit.update();
-    fruit.draw();
+function animate(){
+ ctx.clearRect(0,0,canvas.width,canvas.height);
+ objects.forEach((o,i)=>{
+  o.update();
+  o.draw();
 
-    if (fruit.y > canvas.height + 100) {
-      fruits.splice(index,1);
-    }
-  });
-
-  requestAnimationFrame(animate);
+  if(o.y>canvas.height+100){
+   if(o instanceof Fruit){
+    lives--;
+    updateUI();
+   }
+   objects.splice(i,1);
+  }
+ });
+ requestAnimationFrame(animate);
 }
 animate();
 
-let isDown = false;
+let cutting=false;
+canvas.addEventListener("mousedown",()=>cutting=true);
+canvas.addEventListener("mouseup",()=>cutting=false);
+canvas.addEventListener("touchstart",()=>cutting=true);
+canvas.addEventListener("touchend",()=>cutting=false);
 
-canvas.addEventListener("touchstart", () => isDown = true);
-canvas.addEventListener("touchend", () => isDown = false);
-canvas.addEventListener("mousedown", () => isDown = true);
-canvas.addEventListener("mouseup", () => isDown = false);
+canvas.addEventListener("mousemove",slice);
+canvas.addEventListener("touchmove",e=>slice(e.touches[0]));
 
-canvas.addEventListener("mousemove", slice);
-canvas.addEventListener("touchmove", (e) => {
-  slice(e.touches[0]);
-});
+function slice(e){
+ if(!cutting)return;
+ const x=e.clientX,y=e.clientY;
 
-function slice(e) {
-  if (!isDown) return;
+ objects.forEach((o,i)=>{
+  const dx=o.x-x;
+  const dy=o.y-y;
+  const dist=Math.sqrt(dx*dx+dy*dy);
 
-  const x = e.clientX;
-  const y = e.clientY;
-
-  fruits.forEach((fruit, index) => {
-    const dx = fruit.x - x;
-    const dy = fruit.y - y;
-    const dist = Math.sqrt(dx*dx + dy*dy);
-
-    if (dist < fruit.radius) {
-      fruits.splice(index,1);
-      score++;
-      document.getElementById("score").innerText = "Skor: " + score;
-      sliceSound.play();
-    }
-  });
+  if(dist<50){
+   if(o instanceof Bomb){
+    bombSound.play();
+    lives=0;
+   }else{
+    sliceSound.play();
+    score++;
+   }
+   objects.splice(i,1);
+   updateUI();
+  }
+ });
 }
 
-window.addEventListener("resize", () => {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+function updateUI(){
+ document.getElementById("ui").innerText=`Skor: ${score} | Can: ${lives}`;
+ if(lives<=0){
+  alert("Game Over! Skor: "+score);
+  location.reload();
+ }
+}
+
+addEventListener("resize",()=>{
+ canvas.width=innerWidth;
+ canvas.height=innerHeight;
 });
 </script></body>
 </html>
